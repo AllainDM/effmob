@@ -5,7 +5,14 @@ from typing import List, Dict, Union
 import unittest
 
 class Book:
-    """Класс представляющий книгу."""
+    """Класс представляющий книгу.
+        Содержит атрибуты:
+        1. id - первичный ключ.
+        2. title - название книги.
+        3. author - автор книги.
+        4. author - год издания.
+        5. status - статус книги в библиотеке, на руках или в наличии.
+    """
     def __init__(self, id: int, title: str, author: str, year: int, status: str = "В наличии"):
         self.id = id
         self.title = title
@@ -28,17 +35,25 @@ class Book:
 
 
 class Library:
-    """Класс для управления библиотекой."""
+    """Класс для управления библиотекой.
+     Содержит методы для загрузки, сохранения, добавления,
+     удаления, поиска и отображения и смены статуса книг.
+     """
     def __init__(self, filename: str):
+        # Название файла в котором хранится библиотека.
         self.filename = filename
+        # Список книг загружаемый из файла при инициализации экземпляра.
         self.books: List[Book] = self.load_books()
 
     def load_books(self) -> List[Book]:
         """Загружает книги из файла JSON."""
+        # В случае отсутствия файла вернем пустой список.
         if not os.path.exists(self.filename):
             return []
+        # Откроем для чтения файл с библиотекой.
         with open(self.filename, 'r', encoding='utf-8') as file:
             book_dicts = json.load(file)
+            # Вернем пользователю список с информацией о книгах.
             return [Book.from_dict(book_dict) for book_dict in book_dicts]
 
     def save_books(self):
@@ -48,16 +63,24 @@ class Library:
 
     def add_book(self, title: str, author: str, year: int):
         """Добавляет новую книгу в библиотеку."""
+        # Определим id для новой книги.
         new_id = self.books[-1].id + 1 if self.books else 1
+        # Создадим экземпляр класса книги.
         new_book = Book(new_id, title, author, year)
+        # Добавим к списку книг хранящихся в экземпляре класса библиотеки.
         self.books.append(new_book)
+        # Сохраним обновленный список в файл.
         self.save_books()
+        # Пользователю возвращаем ответ с результатом.
         return f"Книга '{title}' добавлена с ID {new_id}."
 
     def remove_book(self, book_id: int):
         """Удаляет книгу по ID."""
+        # Сохраним количество книг для дальнейшего определения успешности "удаления" книги.
         before_remove = len(self.books)
+        # Создадим новый список книг в котором не будет удаляемой книги.
         self.books = [book for book in self.books if book.id != book_id]
+        # Если количество книг изменилось, значит удаление произошло успешно.
         if len(self.books) < before_remove:
             self.save_books()
             return f"Книга с ID {book_id} удалена."
@@ -66,23 +89,29 @@ class Library:
 
     def search_books(self, query: str, field: str):
         """Ищет книги по заданному полю."""
+        # Создаем список со всеми совпадениями заданного аттрибута.
         results = [book for book in self.books if query.lower() in str(getattr(book, field)).lower()]
         return results
 
     def display_books(self):
         """Возвращает все книги из библиотеки."""
+        # Возвращаем пользователю простой список с информацией о книгах.
         return self.books
 
     def update_status(self, book_id: int, status: str):
         """Обновляет статус книги по ID."""
+        # Переберем простым циклом список с книгами, до совпадения id, после чего сменим статус.
         for book in self.books:
             if book.id == book_id:
                 book.status = status
+                # Сохраним обновленный список в файл.
                 self.save_books()
                 return f"Статус книги с ID {book_id} обновлён на '{status}'."
         return "Книга с таким ID не найдена."
 
 # Тестирование
+# Используется класс TestLibraryMethods,
+# который содержит тесты для каждой из функций класса Library.
 class TestLibraryMethods(unittest.TestCase):
     # Создание файла json для тестирования.
     def setUp(self):
@@ -158,6 +187,7 @@ class TestLibraryMethods(unittest.TestCase):
 def main():
     # Создадим экземпляр библиотеки загрузив данные из файла.
     library = Library('books.json')
+    # Запустим бесконечный цикл с меню.
     while True:
         print("\nУправление библиотекой.")
         print("1. Добавить книгу.")
@@ -215,6 +245,7 @@ def main():
                 if query == "":
                     input(f"\nВведено пустое поле, попробуйте снова. Нажмите enter для продолжения.")
                 else:
+                    # Метод класса возвращает ответ, который мы выводим пользователю.
                     answer = library.search_books(query, field)
                     if answer:
                         for book in answer:
@@ -226,6 +257,7 @@ def main():
         # 4. Отображение всех книг:
         # Приложение выводит список всех книг с их id, title, author, year и status.
         elif choice == '4':
+            # Метод класса возвращает ответ, который мы выводим пользователю.
             answer = library.display_books()
             if answer:
                 for book in answer:
@@ -241,10 +273,12 @@ def main():
             status = input("Введите новый статус ('В наличии(1)' или 'Выдана(0)'): ")
             if status == "1":
                 status = 'В наличии'
+                # Метод класса возвращает ответ, который мы выводим пользователю.
                 answer = library.update_status(book_id, status)
                 input(f"\n{answer} Нажмите enter для продолжения.")
             elif status == "0":
                 status = 'Выдана'
+                # Метод класса возвращает ответ, который мы выводим пользователю.
                 answer = library.update_status(book_id, status)
                 input(f"\n{answer} Нажмите enter для продолжения.")
             else:
