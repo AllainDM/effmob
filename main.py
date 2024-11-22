@@ -184,7 +184,22 @@ class TestLibraryMethods(unittest.TestCase):
         self.assertEqual(books[0].title, "Тестовая книга 3")
 
 
+def create_start_books(filename):
+    books_data = [
+        {"id": 1, "title": "Изучаем Python", "author": "Марк Лутц", "year": 2013, "status": "В наличии"},
+        {"id": 2, "title": "Чистый Python", "author": "Дэн Бейдер", "year": 2016, "status": "Выдана"},
+        {"id": 3, "title": "Грокаем алгоритмы", "author": "Адитья Бхаргава", "year": 2016, "status": "В наличии"},
+        {"id": 4, "title": "Изучаем Git", "author": "Анна Скуликари", "year": 2023, "status": "Выдана"},
+    ]
+    with open(filename, 'w', encoding='utf-8') as file:
+        json.dump(books_data, file, ensure_ascii=False, indent=4)
+        print("Стартовый набор книг добавлен в библиотеку.")
+
+
 def main():
+    # При первом запуске(отсутствующий файл) внесем стартовый набор книг.
+    if not os.path.exists('books.json'):
+        create_start_books('books.json')
     # Создадим экземпляр библиотеки загрузив данные из файла.
     library = Library('books.json')
     # Запустим бесконечный цикл с меню.
